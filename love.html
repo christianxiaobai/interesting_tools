@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我们的时光 ❤️</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'Segoe UI', sans-serif;
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* 星空背景 */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        /* 爱心粒子容器 */
+        .hearts-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .floating-heart {
+            position: absolute;
+            font-size: 20px;
+            animation: floatUp 4s ease-in forwards;
+            pointer-events: none;
+        }
+
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-200px) scale(1.5);
+            }
+        }
+
+        /* 樱花飘落 */
+        .sakura {
+            position: fixed;
+            top: -10px;
+            width: 15px;
+            height: 15px;
+            background: linear-gradient(45deg, #ffb7d5, #ffc0e0);
+            border-radius: 50% 0 50% 0;
+            animation: fall linear infinite;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
+
+        /* 主容器 */
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* 标题区域 */
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .header h1 {
+            font-size: 3.5em;
+            color: white;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+        }
+
+        .header .subtitle {
+            font-size: 1.3em;
+            color: rgba(255,255,255,0.95);
+            font-style: italic;
+        }
+
+        /* 主时钟区域 */
+        .main-clock {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 50px;
+            margin-bottom: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.2);
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .time-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .time-unit {
+            text-align: center;
+            background: rgba(255,255,255,0.1);
+            padding: 25px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .time-value {
+            font-size: 3em;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .time-label {
+            font-size: 1.1em;
+            color: rgba(255,255,255,0.9);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* 内容网格 */
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 35px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+            border: 2px solid rgba(255,255,255,0.2);
+            animation: fadeInUp 1s ease-out;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+        }
+
+        .card-title {
+            font-size: 1.8em;
+            color: white;
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        /* 重要日期倒计时 */
+        .countdown-item {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .countdown-item .event-name {
+            font-size: 1.2em;
+            color: white;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .countdown-item .days-left {
+            font-size: 2em;
+            color: #ffd700;
+            font-weight: bold;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        /* 爱的语录 */
+        .quote-box {
+            text-align: center;
+            padding: 30px;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .quote-text {
+            font-size: 1.4em;
+            color: white;
+            line-height: 1.8;
+            font-style: italic;
+            margin-bottom: 20px;
+        }
+
+        .quote-author {
+            font-size: 1em;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .refresh-quote {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid white;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+
+        .refresh-quote:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.05);
+        }
+
+        /* 里程碑 */
+        .milestone-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .milestone-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .milestone-list::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+
+        .milestone-list::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.3);
+            border-radius: 10px;
+        }
+
+        .milestone-item {
+            padding: 20px;
+            margin-bottom: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            border-left: 4px solid #ffd700;
+        }
+
+        .milestone-item.achieved {
+            border-left-color: #00ff88;
+        }
+
+        .milestone-date {
+            font-size: 1.3em;
+            color: #ffd700;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .milestone-item.achieved .milestone-date {
+            color: #00ff88;
+        }
+
+        .milestone-desc {
+            color: white;
+            font-size: 1.1em;
+        }
+
+        .milestone-status {
+            margin-top: 8px;
+            font-size: 0.9em;
+            color: rgba(255,255,255,0.8);
+        }
+
+        /* 留言板 */
+        .message-board {
+            text-align: center;
+        }
+
+        .message-input {
+            width: 100%;
+            padding: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 15px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .message-input::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+
+        .message-input:focus {
+            outline: none;
+            border-color: rgba(255,255,255,0.6);
+            background: rgba(255,255,255,0.15);
+        }
+
+        .save-message-btn {
+            background: linear-gradient(135deg, #ff6b9d, #c06bff);
+            border: none;
+            color: white;
+            padding: 15px 40px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 8px 20px rgba(192,107,255,0.4);
+        }
+
+        .save-message-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(192,107,255,0.6);
+        }
+
+        .saved-messages {
+            margin-top: 25px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .message-item {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            text-align: left;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .message-text {
+            color: white;
+            font-size: 1.05em;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        .message-time {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.9em;
+        }
+
+        /* 动画 */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.2em;
+            }
+
+            .main-clock {
+                padding: 30px 20px;
+            }
+
+            .time-display {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+
+            .time-value {
+                font-size: 2em;
+            }
+
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .card {
+                padding: 25px;
+            }
+        }
+
+        /* 音乐控制按钮 */
+        .music-control {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+        }
+
+        .music-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b9d, #c06bff);
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(192,107,255,0.4);
+            transition: all 0.3s;
+        }
+
+        .music-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 30px rgba(192,107,255,0.6);
+        }
+
+        .music-btn.playing {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+    </style>
+</head>
+<body>
+    <!-- 星空背景 -->
+    <div class="stars" id="stars"></div>
+
+    <!-- 爱心容器 -->
+    <div class="hearts-container" id="heartsContainer"></div>
+
+    <!-- 主容器 -->
+    <div class="container">
+        <!-- 标题 -->
+        <div class="header">
+            <h1>💕 我们的爱情时光 💕</h1>
+            <p class="subtitle">从 2018年3月9日 开始的每一天</p>
+        </div>
+
+        <!-- 主时钟 -->
+        <div class="main-clock">
+            <div class="time-display">
+                <div class="time-unit">
+                    <span class="time-value" id="years">0</span>
+                    <span class="time-label">年</span>
+                </div>
+                <div class="time-unit">
+                    <span class="time-value" id="days">0</span>
+                    <span class="time-label">天</span>
+                </div>
+                <div class="time-unit">
+                    <span class="time-value" id="hours">0</span>
+                    <span class="time-label">小时</span>
+                </div>
+                <div class="time-unit">
+                    <span class="time-value" id="minutes">0</span>
+                    <span class="time-label">分钟</span>
+                </div>
+                <div class="time-unit">
+                    <span class="time-value" id="seconds">0</span>
+                    <span class="time-label">秒</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 内容网格 -->
+        <div class="content-grid">
+            <!-- 重要日期倒计时 -->
+            <div class="card">
+                <h2 class="card-title">📅 重要日期</h2>
+                <div id="countdownList"></div>
+            </div>
+
+            <!-- 爱的语录 -->
+            <div class="card">
+                <h2 class="card-title">💌 爱的语录</h2>
+                <div class="quote-box">
+                    <p class="quote-text" id="quoteText"></p>
+                    <p class="quote-author" id="quoteAuthor"></p>
+                    <button class="refresh-quote" onclick="changeQuote()">换一句</button>
+                </div>
+            </div>
+
+            <!-- 里程碑 -->
+            <div class="card">
+                <h2 class="card-title">🎯 爱的里程碑</h2>
+                <div class="milestone-list" id="milestoneList"></div>
+            </div>
+
+            <!-- 留言板 -->
+            <div class="card">
+                <h2 class="card-title">✍️ 爱的留言</h2>
+                <div class="message-board">
+                    <textarea class="message-input" id="messageInput" placeholder="写下你想对TA说的话..."></textarea>
+                    <button class="save-message-btn" onclick="saveMessage()">💝 保存留言</button>
+                    <div class="saved-messages" id="savedMessages"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 音乐控制 -->
+    <div class="music-control">
+        <button class="music-btn" id="musicBtn" onclick="toggleMusic()">🎵</button>
+    </div>
+
+    <!-- 背景音乐 (可选，需要自己添加音乐文件) -->
+    <audio id="bgMusic" loop>
+        <!-- <source src="your-music.mp3" type="audio/mpeg"> -->
+    </audio>
+
+    <script>
+        // 相识日期
+        const startDate = new Date('2018-03-09 00:00:00');
+
+        // 爱的语录库
+        const quotes = [
+            { text: "在对的时间遇见对的人，是一生幸福", author: "— 我们的故事" },
+            { text: "陪伴是最长情的告白，相守是最温暖的承诺", author: "— 致我最爱的人" },
+            { text: "我想和你一起，从朝阳初升到星辰满天", author: "— 每一天的期待" },
+            { text: "世界很大，我的眼里只有你", author: "— 专属于你" },
+            { text: "余生很长，我只想和你一起慢慢走", author: "— 未来可期" },
+            { text: "有你的日子，每一天都是情人节", author: "— 365天的甜蜜" },
+            { text: "我愿意用一生的时间，来爱你一个人", author: "— 永恒的承诺" },
+            { text: "你是我最重要的决定，也是我最正确的选择", author: "— 无悔的决定" }
+        ];
+
+        // 重要日期配置
+        const importantDates = [
+            { name: "下一个纪念日", date: getNextAnniversary(), emoji: "🎉" },
+            { name: "我的生日", date: "2024-12-25", emoji: "🎂" },
+            { name: "TA的生日", date: "2024-11-20", emoji: "🎂" },
+            { name: "春节", date: "2026-01-29", emoji: "🧧" }
+        ];
+
+        // 里程碑配置
+        const milestones = [
+            { days: 100, desc: "相识100天 - 第一个小里程碑" },
+            { days: 365, desc: "在一起一周年 - 第一年的纪念" },
+            { days: 500, desc: "相识500天 - 爱意愈浓" },
+            { days: 730, desc: "在一起两周年 - 两年的相守" },
+            { days: 1000, desc: "相识1000天 - 千日之约" },
+            { days: 1095, desc: "在一起三周年 - 三年的陪伴" },
+            { days: 1500, desc: "相识1500天 - 长长久久" },
+            { days: 1825, desc: "在一起五周年 - 五年之约" },
+            { days: 2000, desc: "相识2000天 - 爱你两千天" },
+            { days: 3650, desc: "在一起十周年 - 十年之约" }
+        ];
+
+        // 初始化星空
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+
+        // 创建樱花
+        function createSakura() {
+            const sakura = document.createElement('div');
+            sakura.className = 'sakura';
+            sakura.style.left = Math.random() * 100 + '%';
+            sakura.style.animationDuration = (Math.random() * 3 + 5) + 's';
+            sakura.style.opacity = Math.random() * 0.6 + 0.4;
+            document.body.appendChild(sakura);
+
+            setTimeout(() => sakura.remove(), 8000);
+        }
+
+        // 点击产生爱心特效
+        document.addEventListener('click', function(e) {
+            const heart = document.createElement('div');
+            heart.className = 'floating-heart';
+            heart.textContent = ['❤️', '💕', '💖', '💗', '💝'][Math.floor(Math.random() * 5)];
+            heart.style.left = e.clientX + 'px';
+            heart.style.top = e.clientY + 'px';
+            document.getElementById('heartsContainer').appendChild(heart);
+
+            setTimeout(() => heart.remove(), 4000);
+        });
+
+        // 更新时间显示
+        function updateTime() {
+            const now = new Date();
+            const diff = now - startDate;
+
+            const years = Math.floor(diff / (1000 * 60 * 60 * 24 * 365));
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            document.getElementById('years').textContent = years;
+            document.getElementById('days').textContent = days;
+            document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
+            document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
+            document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
+        }
+
+        // 获取下一个纪念日
+        function getNextAnniversary() {
+            const now = new Date();
+            const thisYear = new Date(now.getFullYear(), 2, 9); // 3月9日
+            const nextYear = new Date(now.getFullYear() + 1, 2, 9);
+
+            if (now > thisYear) {
+                return nextYear.toISOString().split('T')[0];
+            }
+            return thisYear.toISOString().split('T')[0];
+        }
+
+        // 更新倒计时
+        function updateCountdown() {
+            const now = new Date();
+            const listHtml = importantDates.map(item => {
+                const targetDate = new Date(item.date);
+                const diffTime = targetDate - now;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                if (diffDays < 0) return '';
+
+                return `
+                    <div class="countdown-item">
+                        <div class="event-name">${item.emoji} ${item.name}</div>
+                        <div class="days-left">还有 ${diffDays} 天</div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('countdownList').innerHTML = listHtml || '<div style="color: white; text-align: center; padding: 20px;">暂无倒计时</div>';
+        }
+
+        // 更新里程碑
+        function updateMilestones() {
+            const now = new Date();
+            const daysPassed = Math.floor((now - startDate) / (1000 * 60 * 60 * 24));
+
+            const listHtml = milestones.map(item => {
+                const achieved = daysPassed >= item.days;
+                const daysLeft = item.days - daysPassed;
+                const targetDate = new Date(startDate.getTime() + item.days * 24 * 60 * 60 * 1000);
+
+                return `
+                    <div class="milestone-item ${achieved ? 'achieved' : ''}">
+                        <div class="milestone-date">${achieved ? '✓ ' : ''}第 ${item.days} 天</div>
+                        <div class="milestone-desc">${item.desc}</div>
+                        <div class="milestone-status">
+                            ${achieved ?
+                                `已达成于 ${targetDate.toLocaleDateString('zh-CN')}` :
+                                `还需 ${daysLeft} 天 (${targetDate.toLocaleDateString('zh-CN')})`
+                            }
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('milestoneList').innerHTML = listHtml;
+        }
+
+        // 更换语录
+        function changeQuote() {
+            const quote = quotes[Math.floor(Math.random() * quotes.length)];
+            document.getElementById('quoteText').textContent = `"${quote.text}"`;
+            document.getElementById('quoteAuthor').textContent = quote.author;
+        }
+
+        // 保存留言
+        function saveMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            const messages = JSON.parse(localStorage.getItem('loveMessages') || '[]');
+            messages.unshift({
+                text: message,
+                time: new Date().toLocaleString('zh-CN')
+            });
+
+            localStorage.setItem('loveMessages', JSON.stringify(messages));
+            input.value = '';
+            loadMessages();
+        }
+
+        // 加载留言
+        function loadMessages() {
+            const messages = JSON.parse(localStorage.getItem('loveMessages') || '[]');
+            const container = document.getElementById('savedMessages');
+
+            if (messages.length === 0) {
+                container.innerHTML = '<div style="color: rgba(255,255,255,0.6); text-align: center; padding: 20px;">暂无留言</div>';
+                return;
+            }
+
+            container.innerHTML = messages.slice(0, 10).map(msg => `
+                <div class="message-item">
+                    <div class="message-text">${msg.text}</div>
+                    <div class="message-time">${msg.time}</div>
+                </div>
+            `).join('');
+        }
+
+        // 音乐控制
+        let musicPlaying = false;
+        function toggleMusic() {
+            const music = document.getElementById('bgMusic');
+            const btn = document.getElementById('musicBtn');
+
+            if (musicPlaying) {
+                music.pause();
+                btn.classList.remove('playing');
+                btn.textContent = '🎵';
+            } else {
+                music.play();
+                btn.classList.add('playing');
+                btn.textContent = '🎶';
+            }
+            musicPlaying = !musicPlaying;
+        }
+
+        // 初始化
+        createStars();
+        changeQuote();
+        updateTime();
+        updateCountdown();
+        updateMilestones();
+        loadMessages();
+
+        // 定时更新
+        setInterval(updateTime, 1000);
+        setInterval(updateCountdown, 60000);
+        setInterval(() => createSakura(), 300);
+    </script>
+</body>
+</html>
