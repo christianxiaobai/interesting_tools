@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>美食转盘 - 今晚吃什么</title>
+    <title>美食转盘 - 今晚吃什么（调试版）</title>
     <style>
+        /* 样式保持不变 */
         * {
             margin: 0;
             padding: 0;
@@ -253,6 +254,59 @@
             font-size: 1.1em;
         }
 
+        /* 调试面板样式 */
+        .debug-panel {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-width: 300px;
+            z-index: 1000;
+        }
+
+        .debug-panel h3 {
+            margin: 0 0 10px 0;
+            color: #4ECDC4;
+        }
+
+        .debug-panel .debug-item {
+            margin: 5px 0;
+        }
+
+        .debug-panel .debug-label {
+            color: #FFD700;
+        }
+
+        .debug-panel .debug-value {
+            color: #90EE90;
+        }
+
+        .debug-controls {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #666;
+        }
+
+        .debug-controls input {
+            width: 100px;
+            padding: 5px;
+            margin-right: 10px;
+        }
+
+        .debug-controls button {
+            padding: 5px 10px;
+            background: #4ECDC4;
+            border: none;
+            border-radius: 4px;
+            color: black;
+            cursor: pointer;
+        }
+
         @keyframes fadeInDown {
             from {
                 opacity: 0;
@@ -312,6 +366,10 @@
             .wheel-section, .list-section {
                 padding: 25px;
             }
+
+            .debug-panel {
+                display: none;
+            }
         }
     </style>
 </head>
@@ -348,6 +406,40 @@
         </div>
     </div>
 
+    <!-- 调试面板 -->
+    <div class="debug-panel">
+        <h3>🔧 调试信息</h3>
+        <div class="debug-item">
+            <span class="debug-label">当前旋转角度：</span>
+            <span class="debug-value" id="debugRotation">0°</span>
+        </div>
+        <div class="debug-item">
+            <span class="debug-label">食物数量：</span>
+            <span class="debug-value" id="debugFoodCount">8</span>
+        </div>
+        <div class="debug-item">
+            <span class="debug-label">每个扇区角度：</span>
+            <span class="debug-value" id="debugSliceAngle">45°</span>
+        </div>
+        <div class="debug-item">
+            <span class="debug-label">计算的索引：</span>
+            <span class="debug-value" id="debugIndex">-</span>
+        </div>
+        <div class="debug-item">
+            <span class="debug-label">指向的食物：</span>
+            <span class="debug-value" id="debugFood">-</span>
+        </div>
+
+        <div class="debug-controls">
+            <h4 style="color: #4ECDC4; margin: 10px 0;">手动测试</h4>
+            <input type="number" id="testAngle" placeholder="输入角度" value="0">
+            <button onclick="manualTest()">测试</button>
+            <div style="margin-top: 10px; color: #aaa; font-size: 11px;">
+                输入角度后点击测试，查看对应结果
+            </div>
+        </div>
+    </div>
+
     <script>
         const colors = [
             '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A',
@@ -355,13 +447,17 @@
             '#FF8B94', '#A8E6CF', '#FFD3B6', '#FFAAA5'
         ];
 
-        let foods = ['火锅', '烧烤', '麻辣烫', '寿司', '拉面', '披萨', '汉堡', '炸鸡'];
+        // 初始食物列表
+        let foods = ['螺蛳粉', '混沌', '水煮', '大食堂', '小食堂', '麦麦', '夜市', '土乡土菜','家里做饭'];
         let rotation = 0;
         let isSpinning = false;
 
         const canvas = document.getElementById('wheelCanvas');
         const ctx = canvas.getContext('2d');
 
+        // ========================================
+        // 🎯 关键部分1：绘制转盘
+        // ========================================
         function drawWheel() {
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2;
@@ -370,16 +466,19 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.save();
             ctx.translate(centerX, centerY);
-            ctx.rotate((rotation * Math.PI) / 180);
+            ctx.rotate(rotation * Math.PI / 180);  // 🔴 这里控制转盘的旋转
             ctx.translate(-centerX, -centerY);
 
             const sliceAngle = (2 * Math.PI) / foods.length;
 
             foods.forEach((food, index) => {
-                const startAngle = index * sliceAngle;
+                // 🔴 关键调整点1：起始角度
+                // -Math.PI/2 表示从12点方向开始
+                // 如果要调整起始位置，修改这里
+                const startAngle = index * sliceAngle - Math.PI / 2;
                 const endAngle = startAngle + sliceAngle;
 
-                // 绘制扇形
+                // 绘制扇区
                 ctx.beginPath();
                 ctx.moveTo(centerX, centerY);
                 ctx.arc(centerX, centerY, radius, startAngle, endAngle);
@@ -393,20 +492,26 @@
                 // 绘制文字
                 ctx.save();
                 ctx.translate(centerX, centerY);
-                ctx.rotate(startAngle + sliceAngle / 2);
+                ctx.rotate(startAngle + sliceAngle / 2);  // 文字在扇区中心
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillStyle = '#fff';
                 ctx.font = 'bold 22px Microsoft YaHei';
                 ctx.shadowColor = 'rgba(0,0,0,0.5)';
                 ctx.shadowBlur = 4;
+
+                let fontSize = 22;
+                if (food.length > 4) fontSize = 18;
+                if (food.length > 6) fontSize = 16;
+                ctx.font = `bold ${fontSize}px Microsoft YaHei`;
+
                 ctx.fillText(food, radius * 0.65, 0);
                 ctx.restore();
             });
 
             ctx.restore();
 
-            // 绘制中心装饰圆
+            // 中心圆
             ctx.beginPath();
             ctx.arc(centerX, centerY, 35, 0, 2 * Math.PI);
             ctx.fillStyle = '#fff';
@@ -415,14 +520,95 @@
             ctx.lineWidth = 4;
             ctx.stroke();
 
-            // 绘制中心图标
             ctx.fillStyle = '#667eea';
             ctx.font = 'bold 24px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText('🍽️', centerX, centerY);
+
+            // 更新调试信息
+            updateDebugInfo();
         }
 
+        // ========================================
+        // 🎯 关键部分2：计算选中的食物
+        // 这是最重要的部分！
+        // ========================================
+        function getSelectedFood(finalRotation) {
+            const sliceAngle = 360 / foods.length;
+
+            // 将角度标准化到 0-360 范围
+            let normalizedRotation = finalRotation % 360;
+            if (normalizedRotation < 0) {
+                normalizedRotation += 360;
+            }
+
+            // 🔴 关键调整点2：计算逻辑
+            // 方法1：如果第一个扇区在顶部开始
+            let selectedIndex = Math.floor(normalizedRotation / sliceAngle);
+
+            // 🔴 如果需要调整偏移，可以在这里加减
+            // 例如：selectedIndex = (selectedIndex + 1) % foods.length;
+            selectedIndex = (selectedIndex + 1) % foods.length;
+
+            // 🔴 或者使用方法2：反向计算
+            let adjustedAngle = (360 - normalizedRotation) % 360;
+            selectedIndex = Math.floor(adjustedAngle / sliceAngle);
+
+            // 🔴 或者方法3：加入偏移量
+            // let offsetDegrees = sliceAngle / 2;  // 可以调整这个偏移量
+            // let adjustedAngle = (normalizedRotation + offsetDegrees) % 360;
+            // let selectedIndex = Math.floor(adjustedAngle / sliceAngle);
+
+            // 确保索引在有效范围内
+            selectedIndex = selectedIndex % foods.length;
+            if (selectedIndex < 0) {
+                selectedIndex += foods.length;
+            }
+
+            return selectedIndex;
+        }
+
+        // ========================================
+        // 更新调试信息
+        // ========================================
+        function updateDebugInfo() {
+            const normalizedRotation = rotation % 360;
+            const sliceAngle = 360 / foods.length;
+            const selectedIndex = getSelectedFood(normalizedRotation);
+
+            document.getElementById('debugRotation').textContent = normalizedRotation.toFixed(2) + '°';
+            document.getElementById('debugFoodCount').textContent = foods.length;
+            document.getElementById('debugSliceAngle').textContent = sliceAngle.toFixed(2) + '°';
+            document.getElementById('debugIndex').textContent = selectedIndex;
+            document.getElementById('debugFood').textContent = foods[selectedIndex] || '-';
+        }
+
+        // ========================================
+        // 手动测试函数
+        // ========================================
+        function manualTest() {
+            const angle = parseFloat(document.getElementById('testAngle').value);
+            rotation = angle;
+            drawWheel();
+
+            const selectedIndex = getSelectedFood(angle);
+            console.log('=====================================');
+            console.log('手动测试结果：');
+            console.log('输入角度:', angle);
+            console.log('标准化角度:', angle % 360);
+            console.log('选中索引:', selectedIndex);
+            console.log('选中食物:', foods[selectedIndex]);
+            console.log('=====================================');
+
+            // 显示结果
+            document.getElementById('resultFood').textContent = foods[selectedIndex];
+            document.getElementById('resultBox').style.display = 'block';
+        }
+
+        // ========================================
+        // 转盘旋转动画
+        // ========================================
         function spin() {
             if (isSpinning || foods.length === 0) return;
 
@@ -444,22 +630,28 @@
                 const elapsed = currentTime - startTime;
                 const progress = Math.min(elapsed / spinDuration, 1);
 
-                // 缓动函数 - 更平滑的减速效果
                 const easeOut = 1 - Math.pow(1 - progress, 4);
                 const currentRotation = startRotation + totalRotation * easeOut;
 
-                rotation = currentRotation % 360;
+                rotation = currentRotation;
                 drawWheel();
 
                 if (progress < 1) {
                     requestAnimationFrame(animate);
                 } else {
-                    const finalRotation = rotation;
-                    const sliceAngle = 360 / foods.length;
-                    const selectedIndex = Math.floor(((360 - finalRotation + sliceAngle / 2) % 360) / sliceAngle);
+                    const finalRotation = rotation % 360;
+                    const selectedIndex = getSelectedFood(finalRotation);
+                    const selectedFood = foods[selectedIndex];
+
+                    console.log('=====================================');
+                    console.log('转盘停止！');
+                    console.log('最终角度:', finalRotation.toFixed(2));
+                    console.log('选中索引:', selectedIndex);
+                    console.log('选中食物:', selectedFood);
+                    console.log('=====================================');
 
                     setTimeout(() => {
-                        document.getElementById('resultFood').textContent = foods[selectedIndex];
+                        document.getElementById('resultFood').textContent = selectedFood;
                         document.getElementById('resultBox').style.display = 'block';
                         document.getElementById('spinBtn').disabled = false;
                         document.getElementById('spinBtn').textContent = '🎯 开始转盘';
@@ -508,7 +700,6 @@
             `).join('');
         }
 
-        // 回车键添加食物
         document.getElementById('foodInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 addFood();
@@ -518,6 +709,24 @@
         // 初始化
         renderFoodList();
         drawWheel();
+
+        // ========================================
+        // 🔴 调试提示
+        // ========================================
+        console.log('=====================================');
+        console.log('🎯 转盘调试模式已启用！');
+        console.log('');
+        console.log('调整指南：');
+        console.log('1. 修改 drawWheel() 中的 startAngle 来改变扇区起始位置');
+        console.log('2. 修改 getSelectedFood() 中的计算逻辑来调整选中判定');
+        console.log('3. 使用右侧调试面板手动测试角度');
+        console.log('4. 查看控制台输出了解详细计算过程');
+        console.log('');
+        console.log('常见调整方案：');
+        console.log('- 如果结果偏移了1个位置，在 getSelectedFood 中调整索引 +1 或 -1');
+        console.log('- 如果完全反向，尝试使用 (360 - normalizedRotation)');
+        console.log('- 如果需要微调，可以加入角度偏移量');
+        console.log('=====================================');
     </script>
 </body>
 </html>
